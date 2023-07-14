@@ -11,24 +11,37 @@ class YongShengProcess : IYongShengProcess {
     private var mContext: Context? = null
     private var mConfigs: YongShengConfig? = null
     private var mAssistClass: Class<Any>? = null
+    //
+    private val DEAD_LOCK_FILE =  "dead_lock_file.txt"
+    private val DEAD_LOCK_FILE_IS_LOCK_FILE = "dead_lock_is_lock_file.txt"
+    private val ASSIST_LOCK_FILE =  "assist_lock_file.txt"
+    private val ASSIST_LOCK_FILE_IS_LOCK_FILE = "assist_lock_is_lock_file.txt"
 
     override fun onInit(context: Context): Boolean {
         mContext = context
         mAssistClass = null
-        val pFilePath =
-            context.getExternalFilesDir("")!!.absolutePath + File.separator + "dead_lock_file.txt"
-        YongShengNativeLib.createFileIfNotExist(pFilePath)
+        val deaLockFilePath = getFullPath(context, DEAD_LOCK_FILE)
+        YongShengNativeLib.createFileIfNotExist(deaLockFilePath)
+        //
+        val assistLockFilePath =getFullPath(context, ASSIST_LOCK_FILE)
+        YongShengNativeLib.createFileIfNotExist(assistLockFilePath)
         return true
+    }
+
+    private fun getFullPath(context: Context, fileName :String) : String{
+        return context.getExternalFilesDir("")!!.absolutePath + File.separator + fileName;
     }
 
     override fun onSelfCreate(context: Context, configs: YongShengConfig) {
         mContext = context
-
-        val pFilePath =
-            context.getExternalFilesDir("")!!.absolutePath + File.separator + "dead_lock_file.txt"
         //
         Thread {
-            YongShengNativeLib.lockFile(pFilePath)
+            YongShengNativeLib.lockFileAndObserFile(
+                getFullPath(context, DEAD_LOCK_FILE),
+                getFullPath(context, ASSIST_LOCK_FILE),
+                getFullPath(context, DEAD_LOCK_FILE_IS_LOCK_FILE),
+                getFullPath(context, ASSIST_LOCK_FILE_IS_LOCK_FILE)
+            )
         }.start()
 
         mConfigs = configs
@@ -39,9 +52,12 @@ class YongShengProcess : IYongShengProcess {
     override fun onAssistCreate(context: Context, configs: YongShengConfig) {
         mContext = context
         Thread {
-            val pFilePath =
-                context.getExternalFilesDir("")!!.absolutePath + File.separator + "dead_lock_file.txt"
-            YongShengNativeLib.obserFile(pFilePath)
+            YongShengNativeLib.lockFileAndObserFile(
+                getFullPath(context, ASSIST_LOCK_FILE),
+                getFullPath(context, DEAD_LOCK_FILE),
+                getFullPath(context, ASSIST_LOCK_FILE_IS_LOCK_FILE),
+                getFullPath(context, DEAD_LOCK_FILE_IS_LOCK_FILE)
+            )
         }.start()
 
         mConfigs = configs
@@ -50,8 +66,8 @@ class YongShengProcess : IYongShengProcess {
     }
 
     override fun haveProcessDead() {
-        Process.killProcess(Process.myPid())
         starOtherProcessService()
+        Process.killProcess(Process.myPid())
     }
 
     private fun starOtherProcessService() {

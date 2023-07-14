@@ -81,3 +81,46 @@ Java_com_onedream_yongshengdemo_yongsheng_YongShengNativeLib_lockFile(
 }
 
 
+void notify_and_waitfor(char *selfLockFileIsLockFilePath, char *otherLockFileIsLockFilePath) {
+    int observer_self_descriptor = open(selfLockFileIsLockFilePath, O_RDONLY);
+    if (observer_self_descriptor == -1) {
+        observer_self_descriptor = open(selfLockFileIsLockFilePath, O_CREAT, S_IRUSR | S_IWUSR);
+        LOGE("我所在的进程已经锁住文件了 %s %d %d", selfLockFileIsLockFilePath, observer_self_descriptor, getpid());
+    }
+    int observer_daemon_descriptor = open(otherLockFileIsLockFilePath, O_RDONLY);
+    while (observer_daemon_descriptor == -1) {
+        LOGE("对方进程还没锁住它自己文件 %s %d %d", otherLockFileIsLockFilePath, observer_daemon_descriptor, getpid());
+        usleep(1000);
+        observer_daemon_descriptor = open(otherLockFileIsLockFilePath, O_RDONLY);
+    }
+    LOGE("对方进程已经锁住它自己文件了 %s %d %d", otherLockFileIsLockFilePath, observer_daemon_descriptor, getpid());
+    remove(otherLockFileIsLockFilePath);
+    LOGE("尝试锁住观察对方进程  %d",getpid());
+}
+
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_onedream_yongshengdemo_yongsheng_YongShengNativeLib_lockFileAndObserFile(
+        JNIEnv* env,
+        jobject jobj,
+        jstring self_lock_file,
+        jstring other_lock_file,
+        jstring self_lock_file_is_lock_file,
+        jstring other_lock_file_is_lock_file) {
+
+    char *selfLockFilePath = (char *) env->GetStringUTFChars(self_lock_file, 0);
+    //
+    int lock_status = lock_file(selfLockFilePath);
+    //
+    char *selfLockFileIsLockFilePath = (char *) env->GetStringUTFChars(self_lock_file_is_lock_file, 0);
+    char *otherLockFileIsLockFilePath = (char *) env->GetStringUTFChars(other_lock_file_is_lock_file, 0);
+    notify_and_waitfor(selfLockFileIsLockFilePath, otherLockFileIsLockFilePath);
+    //
+    char *otherLockFilePath = (char *) env->GetStringUTFChars(other_lock_file, 0);
+    int lock_status_other = lock_file(otherLockFilePath);
+    if (lock_status_other) {
+        LOGE("锁住对方进程锁住的文件，说明对方进程被杀死! Have process be killed !! Observe in pid %d",getpid());
+        java_callback(env, jobj, DAEMON_CALLBACK_NAME);
+    }
+}
+
