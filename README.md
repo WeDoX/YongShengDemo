@@ -21,3 +21,15 @@ assist进程杀死自己，然后启动DeadService(即启动dead进程）
 ~~~~~~~
 adb shell kill 14237
 ~~~~~~~
+
+
+
+互相观察启动对方
+![互相观察启动对方日志1](app_show_image/1.png)
+![互相观察启动对方日志2](app_show_image/2.png)
+~~~~~~~
+//adb命令杀死assist进程
+adb shell kill 18203
+~~~~~~~
+![互相观察启动对方日志3](app_show_image/3.png)
+![互相观察启动对方日志4](app_show_image/4.png)
