@@ -1,9 +1,12 @@
+
+~~~~~~~
 读了gityuan大佬的文章：
 [深度剖析APP保活案例](http://gityuan.com/2018/02/24/process-keep-forever/)
 想简单实现下，
 在Github找到开源项目
 [Android 保活神器](https://github.com/xinjianteng/Leoric)
 本demo算是个学习笔记吧
+~~~~~~~
 
 ~~~~~~~
 运行项目，会先启动DeadService(即启动dead进程），
