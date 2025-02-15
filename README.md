@@ -36,4 +36,4 @@ adb shell kill 18203
 
 
 
-<a href="https://www.profitablecpmrate.com/g137c2d8a?key=e8465c36ea61437d3200f0ba575f1195" target="_blank" style="background-color: rgb(0, 97, 254); color: rgb(255, 255, 255);">觉得对你有帮助的话，看广告支持我</a>
+<a href="https://www.profitablecpmrate.com/g137c2d8a?key=e8465c36ea61437d3200f0ba575f1195" target="_blank" >觉得对你有帮助的话，看广告支持我</a>
